@@ -24,15 +24,14 @@ let reqId = 0;
 app.use((req, res, next) => {
   reqId += 1;
   req.log = log.child({
-    reqId
+    reqId,
   });
   req.log.info({
-      url: req.originalUrl,
-      method: req.method,
-      params: req.params,
-      query: req.query,
-    },
-    'REST request received');
+    url: req.originalUrl,
+    method: req.method,
+    params: req.params,
+    query: req.query,
+  }, 'REST request received');
   next();
 });
 
