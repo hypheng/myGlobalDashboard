@@ -1,5 +1,3 @@
-'use strict';
+module.exports.sync = function sync() {
 
-module.exports.sync = function() {
-	
-}
+};

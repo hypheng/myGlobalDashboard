@@ -16,6 +16,7 @@
     "morgan": "^1.7.0"
   },
   "devDependencies": {
+    "babel-eslint": "^7.1.1",
     "eslint": "^3.12.1",
     "eslint-config-airbnb-base": "^11.0.0",
     "eslint-plugin-i18n": "^1.1.0",

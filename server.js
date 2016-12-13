@@ -1,4 +1,3 @@
-'use strict';
 const compression = require('compression');
 const bodyParser = require('body-parser');
 const express = require('express');
@@ -12,26 +11,25 @@ const resourceService = require('./service/resourceService');
 
 const PORT = 7010;
 
-let app = express();
+const app = express();
 app.use(compression());
 app.use(bodyParser.json());
 app.use(morgan('combined', {
-  stream: fs.createWriteStream(__dirname + '/access.log', {
-    flags: 'a'
-  })
+  stream: fs.createWriteStream(`${__dirname}/access.log`, {
+    flags: 'a',
+  }),
 }));
 
 let reqId = 0;
-app.use(function(req, res, next) {
-  req.log = log.child({
-    reqId: reqId++
-  });
+app.use((req, res, next) => {
+  reqId += 1;
+  req.log = log.child({ reqId });
   req.log.info({
-      url: req.originalUrl,
-      method: req.method,
-      params: req.params,
-      query: req.query
-    },
+    url: req.originalUrl,
+    method: req.method,
+    params: req.params,
+    query: req.query,
+  },
     'REST request received');
   next();
 });
@@ -44,5 +42,5 @@ app.get('/rest/global/appliances/:id', applianceService.get);
 app.get('/rest/global/:category', resourceService.getList);
 app.get('/rest/global/:category/:id', resourceService.get);
 
-let server = http.createServer(app);
+const server = http.createServer(app);
 server.listen(PORT);
