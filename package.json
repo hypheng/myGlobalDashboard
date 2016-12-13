@@ -2,6 +2,11 @@
   "name": "myGlobalDashboard",
   "version": "0.0.1",
   "description": "A tool to monitor OneView centrally",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Song, Haifeng",
   "dependencies": {
     "body-parser": "^1.15.2",
     "bunyan": "^1.8.5",
@@ -9,5 +14,12 @@
     "compression": "^1.6.2",
     "express": "^4.14.0",
     "morgan": "^1.7.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.12.1",
+    "eslint-config-airbnb-base": "^11.0.0",
+    "eslint-plugin-i18n": "^1.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-promise": "^3.4.0"
   }
 }

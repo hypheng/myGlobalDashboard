@@ -16,13 +16,22 @@ let app = express();
 app.use(compression());
 app.use(bodyParser.json());
 app.use(morgan('combined', {
-  stream: fs.createWriteStream(__dirname + '/access.log', {flags: 'a'})
+  stream: fs.createWriteStream(__dirname + '/access.log', {
+    flags: 'a'
+  })
 }));
 
 let reqId = 0;
-app.use(function (req, res, next) {
-  req.log = log.child({reqId: reqId++});
-  req.log.info({url: req.originalUrl, method: req.method, params: req.params, query: req.query},
+app.use(function(req, res, next) {
+  req.log = log.child({
+    reqId: reqId++
+  });
+  req.log.info({
+      url: req.originalUrl,
+      method: req.method,
+      params: req.params,
+      query: req.query
+    },
     'REST request received');
   next();
 });
