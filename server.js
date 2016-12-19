@@ -31,8 +31,15 @@ app.use((req, res, next) => {
     method: req.method,
     params: req.params,
     query: req.query,
+    body: req.body,
   }, 'REST request received');
   next();
+});
+
+app.use((err, req, res, next) => {
+  req.log.error(err, 'internal server error');
+  res.status(500).end();
+  next(err);
 });
 
 app.post('/rest/global/appliances', applianceService.post);

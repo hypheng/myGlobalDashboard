@@ -7,13 +7,19 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Song, Haifeng",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hypheng/myGlobalDashboard.git"
+  },
   "dependencies": {
     "body-parser": "^1.15.2",
     "bunyan": "^1.8.5",
     "co": "^4.6.0",
     "compression": "^1.6.2",
     "express": "^4.14.0",
-    "morgan": "^1.7.0"
+    "morgan": "^1.7.0",
+    "request": "^2.79.0",
+    "request-promise": "^4.1.1"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
