@@ -1,0 +1,8 @@
+{
+  "gdPort": 7010,
+  "es": {
+    "esPort": 9200,
+    "log": "debug",
+    "requestTimeout": 1000,
+  }
+}

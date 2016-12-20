@@ -6,10 +6,9 @@ const http = require('http');
 const morgan = require('morgan');
 
 const log = require('./log');
+const config = require('./config');
 const applianceService = require('./service/applianceService');
 const resourceService = require('./service/resourceService');
-
-const PORT = 7010;
 
 const app = express();
 app.use(compression());
@@ -51,4 +50,4 @@ app.get('/rest/global/:category', resourceService.getList);
 app.get('/rest/global/:category/:id', resourceService.get);
 
 const server = http.createServer(app);
-server.listen(PORT);
+server.listen(config.gdPort);
