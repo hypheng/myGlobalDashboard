@@ -1,17 +1,23 @@
 const util = require('../util');
 
 module.exports = {
-  saveCredential: (resourceUri, credential) => {
-    if (!util.isProduction) {
-      return { id: `${credential.username}:${credential.password}` };
+  saveCredential: (credential) => {
+    if (!util.isProduction()) {
+      return Promise.resolve(`${credential.username}:${credential.password}:
+        ${credential.domain ? credential.domain : 'local'}`);
     }
-    throw new Error('not implemented');
+    return Promise.reject(new Error('not implemented'));
   },
+
   getCredential: (credentialID) => {
-    const results = credentialID.split(':');
-    return {
-      username: results[0],
-      password: results[1],
-    };
+    if (!util.isProduction()) {
+      const results = credentialID.split(':');
+      return Promise.resolve({
+        username: results[0],
+        password: results[1],
+        domain: results[2],
+      });
+    }
+    return Promise.reject(new Error('not implemented'));
   },
 };

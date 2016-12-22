@@ -1,35 +1,45 @@
 const co = require('co');
-const RESTClient = require('../client/restClient');
+const RestClient = require('../client/restClient');
 const dbClient = require('../client/dbClient');
+const gdBaseClient = require('../client/gdBaseClient');
+const applianceClient = require('../client/applianceClient');
 const resourceService = require('./resourceService');
+const CONST = require('../const');
+
+const APPLIANCE_STATE = {
+  Adding: 'Adding',
+  Online: 'Online',
+  Deleting: 'Deleting',
+  Error: 'Error',
+};
 
 function setApplianceOnline(context, appliance) {
   if (!appliance) {
     return;
   }
 
-  resourceService.addResourcesFrom(appliance)
+  resourceService.addResources(context, appliance)
     .then(() => {
       context.log.info(`succeed to add resources from appliance ${appliance.name}`);
       return dbClient.update({
-        index: 'appliances',
-        type: 'appliances',
+        index: CONST.CATEGORY.APPLIANCES,
+        type: CONST.CATEGORY.APPLIANCES,
         id: appliance.id,
         body: {
           doc: {
-            state: 'Online',
+            state: APPLIANCE_STATE.Online,
           },
         },
       });
     }, (err) => {
       context.log.error(err, `fail to add resources from appliance ${appliance.name}`);
       return dbClient.update({
-        index: 'appliances',
-        type: 'appliances',
+        index: CONST.CATEGORY.APPLIANCES,
+        type: CONST.CATEGORY.APPLIANCES,
         id: appliance.id,
         body: {
           doc: {
-            state: 'Error',
+            state: APPLIANCE_STATE.Error,
           },
         },
       });
@@ -39,31 +49,27 @@ function setApplianceOnline(context, appliance) {
 }
 
 module.exports.post = function post(req, res) {
-  co(function* () {
+  co(function* postApplianceGen() {
     // login appliance
-    const ovClient = new RESTClient(req.body.address, {
+    const credential = {
       username: req.body.username,
       password: req.body.password,
       domain: req.body.domain,
-    }, req.body.ignoreCert);
+    };
+    const ovClient = new RestClient(req.body.address, credential, req.body.ignoreCert);
     yield ovClient.login(req);
 
     // Get appliance supported API version
     const applianceAPIVersion = yield ovClient.get(req, { uri: '/rest/version' });
     req.log.info(`get appliance API version: ${applianceAPIVersion.currentVersion}`);
-    ovClient.setHeader({
-      headers: {
-        'X-API-Version': applianceAPIVersion.currentVersion,
-      },
-    });
-
+    ovClient.setHeader('X-API-Version', applianceAPIVersion.currentVersion);
     // Get appliance basic information
     const applianceVersion = yield ovClient.get(req, { uri: '/rest/appliance/nodeinfo/version' });
     req.log.info(`get appliance node version: ${applianceVersion.softwareVersion}`);
 
     // Verify if appliance is already added
     const existingApplianceList = yield dbClient.search({
-      index: 'appliances',
+      index: CONST.CATEGORY.APPLIANCES,
       q: `serialNumber:${applianceVersion.serialNumber}`,
     });
     if (existingApplianceList.hits.total > 0) {
@@ -84,27 +90,32 @@ module.exports.post = function post(req, res) {
 
     let applianceName = req.body.applianceName;
     if (!applianceName) {
-      networkInterfaces.forEach((networkInterface) => {
+      networkInterfaces.applianceNetworks.forEach((networkInterface) => {
         if (!applianceName) {
           applianceName = networkInterface.hostname;
         }
       });
     }
     if (!applianceName) {
-      networkInterfaces.forEach((networkInterface) => {
+      networkInterfaces.applianceNetworks.forEach((networkInterface) => {
         if (!applianceName) {
           applianceName = networkInterface.app1Ipv4Addr;
         }
       });
     }
 
+    const credentialId = yield gdBaseClient.saveCredential(credential);
     const appliance = Object.assign({},
       {
         id: applianceVersion.serialNumber,
-        category: 'appliances',
+        category: CONST.CATEGORY.APPLIANCES,
         name: applianceName,
         uri: `/rest/global/appliances/${applianceVersion.serialNumber}`,
-        state: 'Adding',
+        address: req.body.address,
+        'X-API-Version': applianceAPIVersion.currentVersion,
+        state: APPLIANCE_STATE.Adding,
+        credentialId,
+        ignoreCert: req.body.ignoreCert,
         nodeinfo: {
           version: applianceVersion,
           status: applianceStatus,
@@ -112,20 +123,33 @@ module.exports.post = function post(req, res) {
         'health-status': applianceHealth.members,
         'network-interfaces': networkInterfaces,
       });
-    yield dbClient.create({
-      index: 'appliances',
-      type: 'appliances',
+
+    applianceClient.cacheClient(appliance, ovClient);
+
+    return yield dbClient.create({
+      index: CONST.CATEGORY.APPLIANCES,
+      type: CONST.CATEGORY.APPLIANCES,
       id: applianceVersion.serialNumber,
       body: appliance,
+    })
+    .then(() => {
+      req.log.info(`appliance ${appliance.name} is saved`);
+      res.json(appliance);
+      return appliance;
+    })
+    .catch((err) => {
+      if (err.statusCode === 409) {
+        req.log.warn(`appliance ${appliance.name} with id ${appliance.id} is already added`);
+        res.status(409).send('appliance already added');
+        return null;
+      }
+      throw err;
     });
-    req.log.info(`appliance ${appliance.name} is saved`);
-    res.json(appliance);
-    return appliance;
   }).then((appliance) => {
     setApplianceOnline(req, appliance);
   }, (err) => {
     req.log.error(err);
-    res.json(500).end(err);
+    res.status(500).send(err);
   });
 };
 module.exports.get = function get(req, res) {
@@ -138,15 +162,27 @@ module.exports.delete = function deleteAppliance(req, res) {
   res.status(204).end();
 };
 
-module.exports.updateResourceCounts = function updateResourceCounts(appliance, resourceCounts) {
-  return dbClient.update({
-    index: 'appliances',
-    type: 'appliances',
-    id: appliance.id,
-    body: {
-      doc: {
-        resourceCounts,
+module.exports.updateResourceCounts = function updateResourceCounts(appliance, counts) {
+  return co(function* updateResourceCountsGen() {
+    const newAppliance = yield dbClient.get({
+      index: CONST.CATEGORY.APPLIANCES,
+      type: CONST.CATEGORY.APPLIANCES,
+      id: appliance.id,
+    });
+
+    Object.keys(counts).forEach((category) => {
+      newAppliance.counts[category] = counts[category];
+    });
+
+    yield dbClient.update({
+      index: CONST.CATEGORY.APPLIANCES,
+      type: CONST.CATEGORY.APPLIANCES,
+      id: appliance.id,
+      body: {
+        doc: {
+          counts: newAppliance.counts,
+        },
       },
-    },
+    });
   });
 };
