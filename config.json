@@ -8,5 +8,16 @@
   "addAppliance": {
     "defaultFetchSize": 640,
     "defaultFetchInterval": 1000
-  }
+  },
+  "appliances": {},
+  "server-hardware": {},
+  "server-profiles": {},
+  "enclosures": {},
+  "alerts": {},
+  "firmware-drivers": {},
+  "storage-pools": {},
+  "storage-systems": {},
+  "storage-volumes": {},
+  "san-managers": {},
+  "managed-sans": {}
 }

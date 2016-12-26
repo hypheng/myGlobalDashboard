@@ -2,8 +2,9 @@ module.exports = {
   isProduction: () => process.env.NODE_ENV === 'production',
 
   getTimer: function getTimer() {
-    this.now = Date.now();
-    this.duration = function duration() {
+    const timer = {};
+    timer.now = Date.now();
+    timer.duration = function duration() {
       const diff = Date.now() - this.now;
       this.now = Date.now();
       if (diff >= 60 * 1000) {
@@ -14,5 +15,6 @@ module.exports = {
       }
       return `${diff} ms`;
     };
+    return timer;
   },
 };

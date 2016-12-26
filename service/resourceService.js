@@ -26,8 +26,9 @@ module.exports.addResources = function addResources(context, appliance) {
         do {
           const stepTimer = util.getTimer();
           const ovClient = yield applianceClient.getClient(appliance);
+          const fetchSize = config[category].fetchSize || config.defaultFetchSize;
           resourceList = yield ovClient.get({
-            uri: `/rest/${category}?start=${start}&count=${config.defaultFetchSize}`,
+            uri: `/rest/${category}?start=${start}&count=${fetchSize}`,
           });
           context.log.info(`get ${resourceList.count} ${category} at `
             + `position ${start} from ${appliance.name} within ${stepTimer.duration()}`);
@@ -40,6 +41,8 @@ module.exports.addResources = function addResources(context, appliance) {
             category: start + resourceList.count,
           });
 
+          context.log.info(
+            `update appliance's resource count within ${stepTimer.duration()}`);
           start += resourceList.count;
         } while (start + resourceList.count < resourceList.total);
       }));
