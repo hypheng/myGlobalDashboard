@@ -6,9 +6,9 @@
     "path": "../log/elasticsearch.log",
     "requestTimeout": 5000
   },
-  "addAppliance": {
+  "fetch": {
     "defaultFetchSize": 640,
-    "defaultFetchInterval": 1000
+    "defaultFetchInterval": 200
   },
   "appliances": {},
   "server-hardware": {},
