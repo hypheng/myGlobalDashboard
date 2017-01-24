@@ -8,16 +8,20 @@
   },
   "fetch": {
     "defaultFetchSize": 640,
-    "defaultFetchInterval": 200
+    "defaultFetchInterval": 0
   },
   "appliances": {},
   "server-hardware": {},
   "server-profiles": {},
   "enclosures": {},
-  "alerts": {},
+  "alerts": {
+    "fetchFilter": "filter=severity='Critical'&filter=(alertState eq 'Active' or alertState eq 'Locked')"
+  },
   "firmware-drivers": {},
   "storage-pools": {},
-  "storage-systems": {},
+  "storage-systems": {
+    "fetchSize": 50
+  },
   "storage-volumes": {},
   "san-managers": {},
   "managed-sans": {}
