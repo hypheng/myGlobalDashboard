@@ -10,6 +10,10 @@
     "defaultFetchSize": 640,
     "defaultFetchInterval": 0
   },
+  "sync": {
+    "logPath": "../../log/sync.log",
+    "minInterval": 10000
+  },
   "appliances": {},
   "server-hardware": {},
   "server-profiles": {},

@@ -23,7 +23,9 @@
   "rules": {
     "i18n/no-chinese-character": 2,
 
-    "no-param-reassign": 1
+    "no-param-reassign": 1,
+
+    "no-underscore-dangle": 0
   },
 
   "extends": ["airbnb-base"],
