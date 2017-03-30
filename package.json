@@ -4,6 +4,7 @@
   "description": "A tool to monitor OneView centrally",
   "main": "lib/server.js",
   "scripts": {
+    "start": "node . | bunyan",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Song, Haifeng",

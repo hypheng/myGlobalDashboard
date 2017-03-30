@@ -3,7 +3,7 @@
   "es": {
     "esPort": 9200,
     "level": "trace",
-    "path": "../log/elasticsearch.log",
+    "path": "./log/elasticsearch.log",
     "requestTimeout": 5000
   },
   "fetch": {
@@ -11,7 +11,7 @@
     "defaultFetchInterval": 0
   },
   "sync": {
-    "logPath": "../../log/sync.log",
+    "logPath": "./log/sync.log",
     "minInterval": 10000
   },
   "appliances": {},
